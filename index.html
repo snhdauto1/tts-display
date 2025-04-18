@@ -160,16 +160,17 @@
     const msgEl = document.getElementById('message');
     const repeatEl = document.getElementById('repeat-select');
     const stopBtn = document.getElementById('stop-btn');
-
     let synth = window.speechSynthesis;
 
     function speak(text, repeat = 2) {
+      if (!synth) return;
       synth.cancel();
       let count = 0;
       function play() {
         if (count >= repeat) return;
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'ko-KR';
+        utter.onerror = e => console.error('TTS 오류:', e);
         utter.onend = () => {
           count++;
           play();
@@ -202,15 +203,20 @@
       }
     });
 
-    // ✅ 최초 클릭 시 TTS 권한 해제 트리거
-    window.addEventListener('click', () => {
+    // ✅ 사용자 첫 클릭 시 TTS 해제 트리거
+    document.addEventListener("DOMContentLoaded", () => {
+      document.body.addEventListener("touchstart", unlockTTS, { once: true });
+      document.body.addEventListener("click", unlockTTS, { once: true });
+    });
+
+    function unlockTTS() {
       if (!window._ttsUnlocked) {
-        const utter = new SpeechSynthesisUtterance("음성 안내가 시작됩니다");
+        const utter = new SpeechSynthesisUtterance("안내가 시작됩니다");
         utter.lang = "ko-KR";
         speechSynthesis.speak(utter);
         window._ttsUnlocked = true;
       }
-    });
+    }
   </script>
 
 </body>
