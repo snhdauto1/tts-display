@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>정비 수리 완료 알림</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      justify-content: space-between;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px;
+      font-size: 2em;
+      font-weight: bold;
+      color: #0044aa;
+    }
+
+    .display-section {
+      text-align: center;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .car-number {
+      font-size: 4em;
+      color: #0044aa;
+      font-weight: bold;
+    }
+
+    .message {
+      font-size: 3em;
+      margin-top: 20px;
+    }
+
+    .input-section {
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      background-color: #f0f0f0;
+    }
+
+    .input-section input,
+    .input-section textarea {
+      padding: 10px;
+      margin-bottom: 10px;
+      font-size: 1em;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .input-section button {
+      background-color: #0066cc;
+      color: white;
+      padding: 10px;
+      border: none;
+      font-size: 1em;
+      cursor: pointer;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <header>정비 수리 완료 알림</header>
+
+  <div class="display-section">
+    <div class="car-number" id="carNumber">차량번호</div>
+    <div class="message" id="message">텍스트를 입력하세요</div>
+  </div>
+
+  <div class="input-section">
+    <input type="text" id="inputCarNumber" placeholder="차량번호 입력">
+    <textarea id="inputMessage" placeholder="정비 내용을 입력하세요 (줄바꿈 가능)"></textarea>
+    <button onclick="submitData()">입력</button>
+  </div>
+
+  <script>
+    // 🔐 Firebase 설정 정보
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQvGw7dv73M0kFqPf-U2wrxR0pdpPGkTY",
+      authDomain: "tts-alarm-db0f3.firebaseapp.com",
+      projectId: "tts-alarm-db0f3",
+      storageBucket: "tts-alarm-db0f3.firebasestorage.app",
+      messagingSenderId: "852833182061",
+      appId: "1:852833182061:web:2f26ddde41bc62aab97a64",
+      measurementId: "G-QZQ5MX03P3"
+    };
+
+    // Firebase 초기화
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // 실시간 업데이트
+    db.collection("messages").doc("latest").onSnapshot((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        document.getElementById("carNumber").textContent = data.carNumber || "차량번호";
+        document.getElementById("message").textContent = data.message || "텍스트를 입력하세요";
+      }
+    });
+
+    // 입력 버튼 기능
+    function submitData() {
+      const carNumber = document.getElementById("inputCarNumber").value;
+      const message = document.getElementById("inputMessage").value;
+
+      db.collection("messages").doc("latest").set({
+        carNumber,
+        message,
+        timestamp: new Date()
+      });
+
+      document.getElementById("inputCarNumber").value = "";
+      document.getElementById("inputMessage").value = "";
+    }
+  </script>
+</body>
+</html>
