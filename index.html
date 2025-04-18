@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>정비 수리 완료 알림</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       margin: 0;
@@ -14,21 +15,22 @@
 
     header {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
       padding: 10px 20px;
-      background: #f5f5f5;
+      background: #f0f0f0;
     }
 
     #repeat-select {
       font-size: 16px;
+      margin-right: 10px;
     }
 
     .icon-btn {
       background: none;
       border: none;
       cursor: pointer;
-      font-size: 20px;
+      font-size: 22px;
     }
 
     main {
@@ -49,136 +51,126 @@
     .message {
       font-size: 32px;
       margin-top: 20px;
+      white-space: pre-line;
     }
 
     footer {
+      padding: 15px;
+      background: #f5f5f5;
       display: flex;
-      padding: 10px;
-      position: relative;
-      background: #f0f0f0;
+      flex-direction: column;
+      gap: 10px;
     }
 
     footer input, footer textarea {
-      flex: 1;
-      margin: 5px;
-      padding: 10px;
       font-size: 16px;
+      padding: 10px;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
     }
 
     footer button {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      padding: 15px 25px;
-      background: #005acc;
-      color: white;
+      align-self: flex-end;
+      width: 120px;
+      padding: 12px;
       font-size: 16px;
+      background-color: #005acc;
+      color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
+      margin-right: calc(50% - 300px);
     }
   </style>
 </head>
 <body>
-
   <header>
-    <div>
-      <select id="repeat-select">
-        <option value="1">1회</option>
-        <option value="2">2회</option>
-        <option value="3">3회</option>
-      </select>
-    </div>
-    <button class="icon-btn" id="stop-btn" title="음성 중단">⏹️</button>
+    <select id="repeat-select" title="음성 반복 횟수">
+      <option value="1">1회</option>
+      <option value="2" selected>2회</option>
+      <option value="3">3회</option>
+    </select>
+    <button id="stop-btn" class="icon-btn" title="음성 중단">⏹️</button>
   </header>
 
   <main>
     <div class="car-number" id="car-number">차량번호</div>
-    <div class="message" id="message">정비 완료 안내 메시지</div>
+    <div class="message" id="message">정비 완료 알림 메시지를 입력하세요.</div>
   </main>
 
   <footer>
-    <input type="text" id="car-input" placeholder="차량번호 입력" />
-    <textarea id="msg-input" placeholder="정비 내용을 입력하세요 (줄바꿈 가능)"></textarea>
+    <input type="text" id="car-input" placeholder="차량 번호 입력" />
+    <textarea id="msg-input" rows="3" placeholder="정비 내용을 입력하세요 (줄바꿈 가능)"></textarea>
     <button onclick="submitData()">입력</button>
   </footer>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
   <script>
-    // ✅ Firebase 설정값 (당신이 주신 정보 반영)
     const firebaseConfig = {
-      apiKey: "AIzaSyAp10MoJ3ZXIYb4wJutTn9A6NTHgT14ZCw",
-      authDomain: "repair-call.firebaseapp.com",
-      projectId: "repair-call",
-      storageBucket: "repair-call.appspot.com",
-      messagingSenderId: "1060998547997",
-      appId: "1:1060998547997:web:44c721eb86a724b0db44b1",
-      measurementId: "G-DC3G4W24NK",
-      databaseURL: "https://repair-call-default-rtdb.firebaseio.com"
+      apiKey: "AIzaSyBQvGw7dv73M0kFqPf-U2wrxR0pdpPGkTY",
+      authDomain: "tts-alarm-db0f3.firebaseapp.com",
+      databaseURL: "https://tts-alarm-db0f3-default-rtdb.firebaseio.com",
+      projectId: "tts-alarm-db0f3",
+      storageBucket: "tts-alarm-db0f3.appspot.com",
+      messagingSenderId: "852833182061",
+      appId: "1:852833182061:web:2f26ddde41bc62aab97a64",
+      measurementId: "G-QZQ5MX03P3"
     };
 
-    // Firebase 초기화
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 요소 참조
-    const carNumberElem = document.getElementById('car-number');
-    const messageElem = document.getElementById('message');
-    const repeatSelect = document.getElementById('repeat-select');
+    const carEl = document.getElementById('car-number');
+    const msgEl = document.getElementById('message');
+    const repeatEl = document.getElementById('repeat-select');
     const stopBtn = document.getElementById('stop-btn');
 
     let synth = window.speechSynthesis;
     let currentUtterance = null;
 
-    // 음성 출력 함수
-    function speakText(text, repeatCount = 1) {
-      if (synth.speaking) synth.cancel();
+    function speak(text, repeat = 2) {
+      synth.cancel();
       let count = 0;
-
-      function repeat() {
-        if (count >= repeatCount) return;
-        currentUtterance = new SpeechSynthesisUtterance(text);
-        currentUtterance.lang = 'ko-KR';
-        currentUtterance.onend = () => {
+      function play() {
+        if (count >= repeat) return;
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'ko-KR';
+        utter.onend = () => {
           count++;
-          repeat();
+          play();
         };
-        synth.speak(currentUtterance);
+        synth.speak(utter);
       }
-
-      repeat();
+      play();
     }
 
-    // 중단 버튼
     stopBtn.addEventListener('click', () => {
-      if (synth.speaking) synth.cancel();
+      synth.cancel();
     });
 
-    // 데이터 입력
     function submitData() {
       const car = document.getElementById('car-input').value.trim();
       const msg = document.getElementById('msg-input').value.trim();
-      if (car && msg) {
-        db.ref('notice').set({ car, msg });
-        document.getElementById('car-input').value = '';
-        document.getElementById('msg-input').value = '';
-      }
+
+      if (!car || !msg) return;
+
+      db.ref('notice').set({ car, msg });
+      document.getElementById('car-input').value = '';
+      document.getElementById('msg-input').value = '';
     }
 
-    // 실시간 데이터 반영
-    db.ref('notice').on('value', snapshot => {
+    db.ref('notice').on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        carNumberElem.textContent = data.car;
-        messageElem.textContent = data.msg;
-        const repeat = parseInt(repeatSelect.value) || 1;
-        speakText(`${data.car} ${data.msg}`, repeat);
+        carEl.textContent = data.car || '-';
+        msgEl.textContent = data.msg || '-';
+        const repeat = parseInt(repeatEl.value) || 1;
+        speak(`[${data.car}] ${data.msg}`, repeat);
       }
     });
   </script>
-
 </body>
 </html>
