@@ -15,7 +15,7 @@
 
     header {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
       padding: 10px 20px;
       background: #f0f0f0;
@@ -33,6 +33,15 @@
       font-size: 22px;
     }
 
+    .title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      padding: 15px;
+      background: #ffffff;
+      border-bottom: 1px solid #ddd;
+    }
+
     main {
       flex: 1;
       display: flex;
@@ -43,13 +52,13 @@
     }
 
     .car-number {
-      font-size: 48px;
+      font-size: 60px;
       font-weight: bold;
       color: #0033a0;
     }
 
     .message {
-      font-size: 32px;
+      font-size: 40px;
       margin-top: 20px;
       white-space: pre-line;
     }
@@ -60,14 +69,31 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      align-items: center;
+    }
+
+    .input-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 600px;
     }
 
     footer input, footer textarea {
       font-size: 16px;
       padding: 10px;
+    }
+
+    #car-input {
+      flex: 1;
+    }
+
+    #msg-input {
       width: 100%;
       max-width: 600px;
-      margin: 0 auto;
     }
 
     footer button {
@@ -85,6 +111,7 @@
   </style>
 </head>
 <body>
+  <div class="title">차량 수리 완료 알림</div>
   <header>
     <select id="repeat-select" title="음성 반복 횟수">
       <option value="1">1회</option>
@@ -100,8 +127,10 @@
   </main>
 
   <footer>
-    <input type="text" id="car-input" placeholder="차량 번호 입력" />
-    <textarea id="msg-input" rows="3" placeholder="정비 내용을 입력하세요 (줄바꿈 가능)"></textarea>
+    <div class="input-row">
+      <input type="text" id="car-input" placeholder="차량 번호 입력" />
+      <textarea id="msg-input" rows="3" placeholder="정비 내용을 입력하세요 (줄바꿈 가능)"></textarea>
+    </div>
     <button onclick="submitData()">입력</button>
   </footer>
 
