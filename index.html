@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>정비 수리 전광판</title>
+</head>
+<body style="font-family:sans-serif; text-align:center; padding:30px">
+  <h1 style="color:#0066cc;">정비 수리 완료 알림</h1>
+
+  <input id="car" placeholder="차량번호" style="font-size:1.2em; padding:10px; width:90%; max-width:400px;" /><br/><br/>
+  <textarea id="text" rows="3" placeholder="정비 내용을 입력하세요" style="font-size:1.1em; padding:10px; width:90%; max-width:400px;"></textarea><br/><br/>
+  <button onclick="send()" style="font-size:1.2em; padding:10px 20px; background:#0066cc; color:white;">입력</button>
+
+  <hr style="margin:30px 0;">
+  <h2 id="displayCar" style="color:#003399;"></h2>
+  <p id="displayText" style="font-size:1.5em; white-space:pre-line;"></p>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // ✅ 사용자의 Firebase 설정
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQvGw7dv73M0kFqPf-U2wrxR0pdpPGkTY",
+      authDomain: "tts-alarm-db0f3.firebaseapp.com",
+      projectId: "tts-alarm-db0f3",
+      storageBucket: "tts-alarm-db0f3.firebasestorage.app",
+      messagingSenderId: "852833182061",
+      appId: "1:852833182061:web:2f26ddde41bc62aab97a64",
+      measurementId: "G-QZQ5MX03P3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const docRef = doc(db, "display", "message");
+
+    // 입력 → Firestore 저장
+    window.send = async () => {
+      const car = document.getElementById("car").value;
+      const text = document.getElementById("text").value;
+      if (!text.trim()) return;
+      await setDoc(docRef, { car, text });
+    };
+
+    // 실시간 표시 + 음성 출력
+    onSnapshot(docRef, (docSnap) => {
+      const data = docSnap.data();
+      if (!data) return;
+
+      const carEl = document.getElementById("displayCar");
+      const textEl = document.getElementById("displayText");
+
+      carEl.textContent = data.car || "";
+      textEl.textContent = data.text || "";
+
+      // 음성 출력
+      const utter = new SpeechSynthesisUtterance(`[${data.car}] ${data.text}`);
+      utter.lang = "ko-KR";
+      speechSynthesis.cancel(); // 중복 방지
+      speechSynthesis.speak(utter);
+    });
+
+    // 음성 초기화(iOS 대응)
+    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = () => {};
+    }
+  </script>
+</body>
+</html>
