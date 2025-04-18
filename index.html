@@ -142,7 +142,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
   <script>
-    // ✅ Firebase 설정값
     const firebaseConfig = {
       apiKey: "AIzaSyBQvGw7dv73M0kFqPf-U2wrxR0pdpPGkTY",
       authDomain: "tts-alarm-db0f3.firebaseapp.com",
@@ -187,9 +186,7 @@
     function submitData() {
       const car = document.getElementById('car-input').value.trim();
       const msg = document.getElementById('msg-input').value.trim();
-
       if (!car || !msg) return;
-
       db.ref('notice').set({ car, msg });
       document.getElementById('car-input').value = '';
       document.getElementById('msg-input').value = '';
@@ -202,6 +199,16 @@
         msgEl.textContent = data.msg || '-';
         const repeat = parseInt(repeatEl.value) || 1;
         speak(`[${data.car}] ${data.msg}`, repeat);
+      }
+    });
+
+    // ✅ 최초 클릭 시 TTS 권한 해제 트리거
+    window.addEventListener('click', () => {
+      if (!window._ttsUnlocked) {
+        const utter = new SpeechSynthesisUtterance("음성 안내가 시작됩니다");
+        utter.lang = "ko-KR";
+        speechSynthesis.speak(utter);
+        window._ttsUnlocked = true;
       }
     });
   </script>
