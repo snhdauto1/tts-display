@@ -2,26 +2,69 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>정비 수리 전광판</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>정비 수리 완료 알림</title>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .display {
+      background-color: #f0f0f0;
+      padding: 40px 20px;
+      border-bottom: 1px solid #ccc;
+    }
+    .car-number {
+      font-size: 36px;
+      font-weight: bold;
+      color: #0d47a1;
+    }
+    .message {
+      font-size: 28px;
+      margin-top: 10px;
+    }
+    .form-container {
+      padding: 30px 20px;
+    }
+    input, textarea {
+      width: 300px;
+      font-size: 16px;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    button {
+      font-size: 18px;
+      padding: 10px 20px;
+      background-color: #0d47a1;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
 </head>
-<body style="font-family:sans-serif; text-align:center; padding:30px">
-  <h1 style="color:#0066cc;">정비 수리 완료 알림</h1>
+<body>
 
-  <input id="car" placeholder="차량번호" style="font-size:1.2em; padding:10px; width:90%; max-width:400px;" /><br/><br/>
-  <textarea id="text" rows="3" placeholder="정비 내용을 입력하세요" style="font-size:1.1em; padding:10px; width:90%; max-width:400px;"></textarea><br/><br/>
-  <button onclick="send()" style="font-size:1.2em; padding:10px 20px; background:#0066cc; color:white;">입력</button>
+  <!-- 상단 출력 영역 -->
+  <div class="display">
+    <div class="car-number" id="displayCar">-</div>
+    <div class="message" id="displayMsg">-</div>
+  </div>
 
-  <hr style="margin:30px 0;">
-  <h2 id="displayCar" style="color:#003399;"></h2>
-  <p id="displayText" style="font-size:1.5em; white-space:pre-line;"></p>
+  <!-- 하단 입력 폼 -->
+  <div class="form-container">
+    <h2>정비 수리 완료 알림 입력</h2>
+    <input id="car" type="text" placeholder="차량 번호 또는 이름" /><br />
+    <textarea id="msg" rows="3" placeholder="전달할 메시지 입력"></textarea><br />
+    <button onclick="send()">입력</button>
+  </div>
 
-  <!-- Firebase SDK -->
   <script type="module">
+    // Firebase 설정
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // ✅ 사용자의 Firebase 설정
     const firebaseConfig = {
       apiKey: "AIzaSyBQvGw7dv73M0kFqPf-U2wrxR0pdpPGkTY",
       authDomain: "tts-alarm-db0f3.firebaseapp.com",
@@ -34,38 +77,31 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const docRef = doc(db, "display", "message");
 
-    // 입력 → Firestore 저장
-    window.send = async () => {
-      const car = document.getElementById("car").value;
-      const text = document.getElementById("text").value;
-      if (!text.trim()) return;
-      await setDoc(docRef, { car, text });
-    };
+    const displayCar = document.getElementById("displayCar");
+    const displayMsg = document.getElementById("displayMsg");
 
-    // 실시간 표시 + 음성 출력
-    onSnapshot(docRef, (docSnap) => {
-      const data = docSnap.data();
-      if (!data) return;
+    // 실시간 데이터 반영
+    onSnapshot(doc(db, "display", "latest"), (doc) => {
+      const data = doc.data();
+      displayCar.innerText = data?.car || "-";
+      displayMsg.innerText = data?.msg || "-";
 
-      const carEl = document.getElementById("displayCar");
-      const textEl = document.getElementById("displayText");
-
-      carEl.textContent = data.car || "";
-      textEl.textContent = data.text || "";
-
-      // 음성 출력
-      const utter = new SpeechSynthesisUtterance(`[${data.car}] ${data.text}`);
-      utter.lang = "ko-KR";
-      speechSynthesis.cancel(); // 중복 방지
+      // 텍스트 음성 출력
+      const utter = new SpeechSynthesisUtterance(`${data.car}, ${data.msg}`);
       speechSynthesis.speak(utter);
     });
 
-    // 음성 초기화(iOS 대응)
-    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
-      speechSynthesis.onvoiceschanged = () => {};
-    }
+    // 입력 처리
+    window.send = async () => {
+      const car = document.getElementById("car").value.trim();
+      const msg = document.getElementById("msg").value.trim();
+      if (car && msg) {
+        await setDoc(doc(db, "display", "latest"), { car, msg });
+        document.getElementById("car").value = "";
+        document.getElementById("msg").value = "";
+      }
+    };
   </script>
 </body>
 </html>
