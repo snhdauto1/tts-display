@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>정비 수리 완료 알림</title>
+  <title>차량 수리 완료 알림</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
@@ -13,9 +13,18 @@
       height: 100vh;
     }
 
+    .title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      padding: 15px;
+      background: #ffffff;
+      border-bottom: 1px solid #ddd;
+    }
+
     header {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
       padding: 10px 20px;
       background: #f0f0f0;
@@ -31,15 +40,6 @@
       border: none;
       cursor: pointer;
       font-size: 22px;
-    }
-
-    .title {
-      text-align: center;
-      font-size: 28px;
-      font-weight: bold;
-      padding: 15px;
-      background: #ffffff;
-      border-bottom: 1px solid #ddd;
     }
 
     main {
@@ -82,7 +82,8 @@
       max-width: 600px;
     }
 
-    footer input, footer textarea {
+    footer input,
+    footer textarea {
       font-size: 16px;
       padding: 10px;
     }
@@ -111,7 +112,9 @@
   </style>
 </head>
 <body>
+
   <div class="title">차량 수리 완료 알림</div>
+
   <header>
     <select id="repeat-select" title="음성 반복 횟수">
       <option value="1">1회</option>
@@ -137,13 +140,15 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
   <script>
+    // ✅ Firebase 설정값
     const firebaseConfig = {
       apiKey: "AIzaSyBQvGw7dv73M0kFqPf-U2wrxR0pdpPGkTY",
       authDomain: "tts-alarm-db0f3.firebaseapp.com",
-      databaseURL: "https://tts-alarm-db0f3-default-rtdb.firebaseio.com",
+      databaseURL: "https://tts-alarm-db0f3-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "tts-alarm-db0f3",
-      storageBucket: "tts-alarm-db0f3.appspot.com",
+      storageBucket: "tts-alarm-db0f3.firebasestorage.app",
       messagingSenderId: "852833182061",
       appId: "1:852833182061:web:2f26ddde41bc62aab97a64",
       measurementId: "G-QZQ5MX03P3"
@@ -158,7 +163,6 @@
     const stopBtn = document.getElementById('stop-btn');
 
     let synth = window.speechSynthesis;
-    let currentUtterance = null;
 
     function speak(text, repeat = 2) {
       synth.cancel();
@@ -201,5 +205,6 @@
       }
     });
   </script>
+
 </body>
 </html>
