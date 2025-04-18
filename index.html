@@ -160,16 +160,26 @@
     const msgEl = document.getElementById('message');
     const repeatEl = document.getElementById('repeat-select');
     const stopBtn = document.getElementById('stop-btn');
-    let synth = window.speechSynthesis;
+    const synth = window.speechSynthesis;
+
+    function getKoreanVoice() {
+      const voices = speechSynthesis.getVoices();
+      return voices.find(v => v.lang === 'ko-KR') || null;
+    }
 
     function speak(text, repeat = 2) {
       if (!synth) return;
       synth.cancel();
       let count = 0;
+
       function play() {
         if (count >= repeat) return;
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'ko-KR';
+
+        const koreanVoice = getKoreanVoice();
+        if (koreanVoice) utter.voice = koreanVoice;
+
         utter.onerror = e => console.error('TTS 오류:', e);
         utter.onend = () => {
           count++;
@@ -177,7 +187,12 @@
         };
         synth.speak(utter);
       }
-      play();
+
+      if (synth.getVoices().length === 0) {
+        synth.onvoiceschanged = play;
+      } else {
+        play();
+      }
     }
 
     stopBtn.addEventListener('click', () => {
@@ -203,7 +218,7 @@
       }
     });
 
-    // ✅ 사용자 첫 클릭 시 TTS 해제 트리거
+    // ✅ 사용자 클릭 시 TTS 권한 해제 트리거
     document.addEventListener("DOMContentLoaded", () => {
       document.body.addEventListener("touchstart", unlockTTS, { once: true });
       document.body.addEventListener("click", unlockTTS, { once: true });
@@ -213,6 +228,8 @@
       if (!window._ttsUnlocked) {
         const utter = new SpeechSynthesisUtterance("안내가 시작됩니다");
         utter.lang = "ko-KR";
+        const koreanVoice = getKoreanVoice();
+        if (koreanVoice) utter.voice = koreanVoice;
         speechSynthesis.speak(utter);
         window._ttsUnlocked = true;
       }
