@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>정비 수리 완료 알림</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
     body {
       margin: 0;
-      font-family: 'Arial', sans-serif;
+      font-family: "Noto Sans KR", sans-serif;
       display: flex;
       flex-direction: column;
       height: 100vh;
@@ -16,112 +17,123 @@
     }
 
     header {
+      padding: 30px 20px 10px;
       text-align: center;
-      padding: 20px;
-      font-size: 2em;
-      font-weight: bold;
-      color: #0044aa;
+      background: #f5f5f5;
+      border-bottom: 1px solid #ccc;
     }
 
-    .display-section {
-      text-align: center;
-      flex-grow: 1;
+    header h1 {
+      color: #0033a0;
+      font-size: 36px;
+      margin: 0;
+    }
+
+    .display {
+      flex: 1;
       display: flex;
       flex-direction: column;
+      align-items: center;
       justify-content: center;
+      font-size: 40px;
+      padding: 20px;
     }
 
-    .car-number {
-      font-size: 4em;
-      color: #0044aa;
+    .display .car {
       font-weight: bold;
+      color: #0033a0;
+      font-size: 48px;
     }
 
-    .message {
-      font-size: 3em;
-      margin-top: 20px;
+    .input-area {
+      padding: 20px;
+      border-top: 1px solid #ccc;
+      background: #fff;
     }
 
-    .input-section {
-      display: flex;
-      flex-direction: column;
-      padding: 10px;
-      background-color: #f0f0f0;
-    }
-
-    .input-section input,
-    .input-section textarea {
+    .input-area input,
+    .input-area textarea {
+      width: 100%;
       padding: 10px;
       margin-bottom: 10px;
-      font-size: 1em;
-      width: 100%;
+      font-size: 16px;
       box-sizing: border-box;
     }
 
-    .input-section button {
-      background-color: #0066cc;
-      color: white;
-      padding: 10px;
-      border: none;
-      font-size: 1em;
-      cursor: pointer;
+    .input-area button {
       width: 100%;
+      background: #0057d9;
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .input-area button:hover {
+      background: #0040a0;
     }
   </style>
 </head>
 <body>
-  <header>정비 수리 완료 알림</header>
+  <header>
+    <h1>정비 수리 완료 알림</h1>
+  </header>
 
-  <div class="display-section">
-    <div class="car-number" id="carNumber">차량번호</div>
-    <div class="message" id="message">텍스트를 입력하세요</div>
+  <div class="display">
+    <div class="car" id="car-number">차량번호</div>
+    <div id="message-text">텍스트를 입력하세요</div>
   </div>
 
-  <div class="input-section">
-    <input type="text" id="inputCarNumber" placeholder="차량번호 입력">
-    <textarea id="inputMessage" placeholder="정비 내용을 입력하세요 (줄바꿈 가능)"></textarea>
-    <button onclick="submitData()">입력</button>
+  <div class="input-area">
+    <input type="text" id="carInput" placeholder="차량 번호 또는 이름"/>
+    <textarea id="messageInput" rows="3" placeholder="전달할 메시지 입력 (줄바꿈 가능)"></textarea>
+    <button onclick="sendMessage()">입력</button>
   </div>
 
   <script>
-    // 🔐 Firebase 설정 정보
+    // Firebase 설정
     const firebaseConfig = {
-      apiKey: "AIzaSyBQvGw7dv73M0kFqPf-U2wrxR0pdpPGkTY",
-      authDomain: "tts-alarm-db0f3.firebaseapp.com",
-      projectId: "tts-alarm-db0f3",
-      storageBucket: "tts-alarm-db0f3.firebasestorage.app",
-      messagingSenderId: "852833182061",
-      appId: "1:852833182061:web:2f26ddde41bc62aab97a64",
-      measurementId: "G-QZQ5MX03P3"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
 
-    // Firebase 초기화
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 실시간 업데이트
-    db.collection("messages").doc("latest").onSnapshot((doc) => {
-      if (doc.exists) {
-        const data = doc.data();
-        document.getElementById("carNumber").textContent = data.carNumber || "차량번호";
-        document.getElementById("message").textContent = data.message || "텍스트를 입력하세요";
-      }
-    });
+    // 메시지 전송
+    function sendMessage() {
+      const car = document.getElementById('carInput').value.trim();
+      const message = document.getElementById('messageInput').value.trim();
 
-    // 입력 버튼 기능
-    function submitData() {
-      const carNumber = document.getElementById("inputCarNumber").value;
-      const message = document.getElementById("inputMessage").value;
+      if (!car || !message) {
+        alert("차량번호와 메시지를 모두 입력하세요.");
+        return;
+      }
 
       db.collection("messages").doc("latest").set({
-        carNumber,
-        message,
-        timestamp: new Date()
+        car: car,
+        message: message,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      document.getElementById("inputCarNumber").value = "";
-      document.getElementById("inputMessage").value = "";
+      document.getElementById('carInput').value = '';
+      document.getElementById('messageInput').value = '';
     }
+
+    // 실시간 메시지 표시
+    db.collection("messages").doc("latest")
+      .onSnapshot((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          document.getElementById('car-number').textContent = data.car || "차량번호";
+          document.getElementById('message-text').textContent = data.message || "텍스트를 입력하세요";
+        }
+      });
   </script>
 </body>
 </html>
